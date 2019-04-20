@@ -51,7 +51,7 @@ namespace GS_MonitoringSite
         private void button1_Click_1(object sender, EventArgs e)
         {
             sites.CheckSites();
-            dataGridView1.Update();
+            dataGridView1.Refresh();
         }
     }
 }

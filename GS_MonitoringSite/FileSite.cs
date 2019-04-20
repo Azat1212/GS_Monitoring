@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Net;
 
 namespace GS_MonitoringSite
@@ -11,8 +12,9 @@ namespace GS_MonitoringSite
     class Site
     {
         public string url { get; set; }
-        public bool status { get; set; }
         public string validUrl { get; set; }
+        public bool status { get; set; }
+        
 
         public Site(string name)
         {
@@ -29,7 +31,7 @@ namespace GS_MonitoringSite
             {
                 WebRequest request = WebRequest.Create(url);
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                status = (response != null && response.StatusCode == HttpStatusCode.OK);
+                this.status = (response != null && response.StatusCode == HttpStatusCode.OK);
                 response.Close();
             }
         }
@@ -38,7 +40,7 @@ namespace GS_MonitoringSite
         {
             Uri uriResult;
             bool result = Uri.TryCreate(url, UriKind.Absolute, out uriResult)
-                && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+                && (uriResult.Scheme == Uri.SchemeDelimiter || uriResult.Scheme == Uri.UriSchemeHttps || uriResult.Scheme == Uri.UriSchemeHttp);
             validUrl = (result) ? "Valid" : "Not valid";
             status = (validUrl == "Valid") ? false : status;
         }
@@ -52,11 +54,25 @@ namespace GS_MonitoringSite
     {
         private string fileName = "nameSites.txt";
         private List<Site> sitesList = new List<Site>();
+        private Timer pingTimer;
+
 
         public SitesFile()
         {
             CheckFileExists();
             CreateListSite();
+            DefineTimer();
+        }
+
+        private void DefineTimer()
+        {
+            int perid = 10000;
+            pingTimer = new Timer(new TimerCallback(CheckSitesByTimer), null, 0, perid);
+        }
+
+        private void CheckSitesByTimer(object obj)
+        {
+            CheckSites();
         }
 
         public ref List<Site> getFileList()
