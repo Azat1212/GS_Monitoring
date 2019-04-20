@@ -18,19 +18,16 @@ namespace GS_MonitoringSite
 
 {
     public partial class Form1 : Form
-    {   
+    {
         public Form1()
         {
             InitializeComponent();
+            this.FormClosing += Form1_FormClosing;
             dataGridView1.DataSource = sites.getFileList();
         }
 
 
         private SitesFile sites = new SitesFile();
-
-        
-
-
 
 
         private void Form1_Load(object sender, EventArgs e)
@@ -52,6 +49,11 @@ namespace GS_MonitoringSite
         {
             sites.CheckSites();
             dataGridView1.Refresh();
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            sites.UpdateFileSites();
         }
     }
 }
