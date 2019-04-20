@@ -22,11 +22,11 @@ namespace GS_MonitoringSite
         public Form1()
         {
             InitializeComponent();
-            dataGridView1.DataSource = Site.getFileList();
+            dataGridView1.DataSource = sites.getFileList();
         }
 
 
-        private SitesFile Site = new SitesFile();
+        private SitesFile sites = new SitesFile();
 
         
 
@@ -40,12 +40,18 @@ namespace GS_MonitoringSite
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Site.UpdateFileSites();
+            sites.UpdateFileSites();
         }
 
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
 
+        }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            sites.CheckSites();
+            dataGridView1.Update();
         }
     }
 }

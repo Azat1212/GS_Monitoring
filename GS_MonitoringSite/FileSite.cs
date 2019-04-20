@@ -12,19 +12,35 @@ namespace GS_MonitoringSite
     {
         public string url { get; set; }
         public bool status { get; set; }
+        public string validUrl { get; set; }
 
         public Site(string name)
         {
             url = name;
+            CheckUrl();
             CheckStatus();
         }
 
         public void CheckStatus()
         {
-            WebRequest request = WebRequest.Create(url);
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            status = (response != null && response.StatusCode == HttpStatusCode.OK);
-            response.Close();
+            CheckUrl();
+
+            if (validUrl == "Valid")
+            {
+                WebRequest request = WebRequest.Create(url);
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                status = (response != null && response.StatusCode == HttpStatusCode.OK);
+                response.Close();
+            }
+        }
+
+        public void CheckUrl()
+        {
+            Uri uriResult;
+            bool result = Uri.TryCreate(url, UriKind.Absolute, out uriResult)
+                && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+            validUrl = (result) ? "Valid" : "Not valid";
+            status = (validUrl == "Valid") ? false : status;
         }
 
 
@@ -47,7 +63,7 @@ namespace GS_MonitoringSite
         {
             return ref sitesList;
         }
-        
+
 
         private void CreateListSite()
         {
@@ -87,7 +103,7 @@ namespace GS_MonitoringSite
             {
                 using (StreamWriter sw = new StreamWriter(fileName, false))
                 {
-        
+
                     foreach (var item in sitesList)
                     {
                         sw.WriteLine(item.url);
