@@ -13,8 +13,7 @@ namespace GS_MonitoringSite
     {
         public string url { get; set; }
         public string validUrl { get; set; }
-        public bool status { get; set; }
-        
+        public bool access { get; set; }
 
         public Site(string name)
         {
@@ -29,10 +28,17 @@ namespace GS_MonitoringSite
 
             if (validUrl == "Valid")
             {
-                WebRequest request = WebRequest.Create(url);
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                this.status = (response != null && response.StatusCode == HttpStatusCode.OK);
-                response.Close();
+                try
+                {
+                    WebRequest request = WebRequest.Create(url);
+                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                    this.access = (response != null && response.StatusCode == HttpStatusCode.OK);
+                    response.Close();
+                }
+                catch (System.Net.WebException e)
+                {
+
+                }
             }
         }
 
@@ -42,10 +48,23 @@ namespace GS_MonitoringSite
             bool result = Uri.TryCreate(url, UriKind.Absolute, out uriResult)
                 && (uriResult.Scheme == Uri.SchemeDelimiter || uriResult.Scheme == Uri.UriSchemeHttps || uriResult.Scheme == Uri.UriSchemeHttp);
             validUrl = (result) ? "Valid" : "Not valid";
-            status = (validUrl == "Valid") ? false : status;
+            access = (validUrl == "Valid") ? false : access;
         }
 
+        public static bool operator ==(Site var1, Site var2)
+        {
+            return (var1.url == var2.url);
+        }
 
+        public static bool operator !=(Site var1, Site var2)
+        {
+            return !(var1 == var2);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return this == (Site)obj;
+        }
     }
     /*
      * Работает с сайтами из файла
@@ -64,6 +83,25 @@ namespace GS_MonitoringSite
             DefineTimer();
         }
 
+        public void Add(string NewSite)
+        {
+            if (!sitesList.Contains(new Site(NewSite)))
+            {
+                sitesList.Add(new Site(NewSite));
+                UpdateFileSites();
+            }
+        }
+
+        public void Delete(int index)
+        {
+            if (sitesList.Count() >= index && index >= 0)
+            {
+                var item = sitesList[index];
+                sitesList.Remove(item);
+                UpdateFileSites();
+            }
+        }
+
         private void DefineTimer()
         {
             int perid = 10000;
@@ -75,7 +113,7 @@ namespace GS_MonitoringSite
             CheckSites();
         }
 
-        public ref List<Site> getFileList()
+        public ref List<Site> getSitesList()
         {
             return ref sitesList;
         }
@@ -129,7 +167,6 @@ namespace GS_MonitoringSite
                     {
                         sw.WriteLine("Nothing not found.");
                     }
-                    sw.WriteLine();
                 }
             }
             catch
