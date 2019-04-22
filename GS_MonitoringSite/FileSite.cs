@@ -74,7 +74,7 @@ namespace GS_MonitoringSite
         private string fileName = "nameSites.txt";
         private List<Site> sitesList = new List<Site>();
         private Timer pingTimer;
-
+        private int timerPeriod = 10000;
 
         public SitesFile()
         {
@@ -104,8 +104,7 @@ namespace GS_MonitoringSite
 
         private void DefineTimer()
         {
-            int perid = 10000;
-            pingTimer = new Timer(new TimerCallback(CheckSitesByTimer), null, 0, perid);
+           pingTimer = new Timer(new TimerCallback(CheckSitesByTimer), null, 0, timerPeriod);
         }
 
         private void CheckSitesByTimer(object obj)
