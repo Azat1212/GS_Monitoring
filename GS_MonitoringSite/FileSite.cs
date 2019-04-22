@@ -19,7 +19,7 @@ namespace GS_MonitoringSite
         {
             url = name;
             CheckUrl();
-           // CheckStatus();
+            CheckStatus();
         }
 
         public void CheckStatus()
@@ -74,6 +74,7 @@ namespace GS_MonitoringSite
         private string fileName = "nameSites.txt";
         private List<Site> sitesList = new List<Site>();
         private int timerPeriod = 1000;
+        private static object _lock = new object();
 
         public SitesFile()
         {
@@ -86,7 +87,10 @@ namespace GS_MonitoringSite
         {
             if (!sitesList.Contains(new Site(NewSite)))
             {
-                sitesList.Add(new Site(NewSite));
+                lock (_lock)
+                {
+                    sitesList.Add(new Site(NewSite));
+                }
                 UpdateFileSites();
             }
         }
@@ -95,7 +99,10 @@ namespace GS_MonitoringSite
         {
             if (sitesList.Count() >= index && index >= 0)
             {
-                sitesList.RemoveAt(index);
+                lock (_lock)
+                {
+                    sitesList.RemoveAt(index);
+                }
                 UpdateFileSites();
             }
         }
@@ -107,7 +114,7 @@ namespace GS_MonitoringSite
 
         private void CheckSitesByTimer(object obj)
         {
-            Thread th1 = new Thread(() => CheckSites());
+           new Thread(() => CheckSites()).Start();
         }
 
         public ref List<Site> getSitesList()
@@ -126,7 +133,10 @@ namespace GS_MonitoringSite
                     while (!sr.EndOfStream)
                     {
                         lineFromFile = sr.ReadLine();
-                        sitesList.Add(new Site(lineFromFile));                  
+                        lock (_lock)
+                        {
+                            sitesList.Add(new Site(lineFromFile));
+                        }
                     }
                 }
             }
@@ -170,9 +180,9 @@ namespace GS_MonitoringSite
 
         public void CheckSites()
         {
-            foreach (var site in sitesList)
+            lock (_lock)
             {
-                site.CheckStatus();
+                sitesList.ForEach(site => site.CheckStatus());
             }
         }
     }
