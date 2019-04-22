@@ -19,14 +19,12 @@ namespace GS_MonitoringSite
         {
             url = name;
             CheckUrl();
-            CheckStatus();
+           // CheckStatus();
         }
 
         public void CheckStatus()
         {
-            CheckUrl();
-
-            if (validUrl == "Valid")
+            if (CheckUrl())
             {
                 try
                 {
@@ -37,18 +35,20 @@ namespace GS_MonitoringSite
                 }
                 catch (System.Net.WebException e)
                 {
-
+                    this.access = false;
                 }
             }
         }
 
-        public void CheckUrl()
+        private bool CheckUrl()
         {
             Uri uriResult;
             bool result = Uri.TryCreate(url, UriKind.Absolute, out uriResult)
                 && (uriResult.Scheme == Uri.SchemeDelimiter || uriResult.Scheme == Uri.UriSchemeHttps || uriResult.Scheme == Uri.UriSchemeHttp);
             validUrl = (result) ? "Valid" : "Not valid";
             access = (validUrl == "Valid") ? false : access;
+
+            return (validUrl == "Valid");
         }
 
         public static bool operator ==(Site var1, Site var2)
@@ -73,8 +73,7 @@ namespace GS_MonitoringSite
     {
         private string fileName = "nameSites.txt";
         private List<Site> sitesList = new List<Site>();
-        private Timer pingTimer;
-        private int timerPeriod = 10000;
+        private int timerPeriod = 1000;
 
         public SitesFile()
         {
@@ -96,28 +95,26 @@ namespace GS_MonitoringSite
         {
             if (sitesList.Count() >= index && index >= 0)
             {
-                var item = sitesList[index];
-                sitesList.Remove(item);
+                sitesList.RemoveAt(index);
                 UpdateFileSites();
             }
         }
 
         private void DefineTimer()
         {
-           pingTimer = new Timer(new TimerCallback(CheckSitesByTimer), null, 0, timerPeriod);
+           new Timer(new TimerCallback(CheckSitesByTimer), null, 0, timerPeriod);
         }
 
         private void CheckSitesByTimer(object obj)
         {
-            CheckSites();
+            Thread th1 = new Thread(() => CheckSites());
         }
 
         public ref List<Site> getSitesList()
         {
             return ref sitesList;
         }
-
-
+    
         private void CreateListSite()
         {
             var lineFromFile = String.Empty;
@@ -128,12 +125,9 @@ namespace GS_MonitoringSite
                 {
                     while (!sr.EndOfStream)
                     {
-
                         lineFromFile = sr.ReadLine();
-                        sitesList.Add(new Site(lineFromFile));
-
+                        sitesList.Add(new Site(lineFromFile));                  
                     }
-
                 }
             }
             catch
@@ -172,8 +166,6 @@ namespace GS_MonitoringSite
             {
                 Console.WriteLine("Error write to a file.");
             }
-
-
         }
 
         public void CheckSites()
